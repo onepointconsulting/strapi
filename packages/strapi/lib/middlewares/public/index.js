@@ -10,6 +10,7 @@ const path = require('path');
 const _ = require('lodash');
 const koaStatic = require('koa-static');
 const stream = require('stream');
+const serveStatic = require('./serve-static');
 
 const utils = require('../../utils');
 
@@ -61,18 +62,9 @@ module.exports = strapi => {
 
         strapi.router.get('/', serveIndexPage);
         strapi.router.get('/index.html', serveIndexPage);
-
-        // serve images of index.html
         strapi.router.get(
           '/assets/images/(.*)',
-          async (ctx, next) => {
-            ctx.url = path.basename(ctx.url);
-            await next();
-          },
-          koaStatic(path.resolve(__dirname, 'assets/images'), {
-            maxage: maxAge,
-            defer: false,
-          })
+          serveStatic(path.resolve(__dirname, 'assets/images'), { maxage: maxAge, defer: true })
         );
       }
 
@@ -91,15 +83,7 @@ module.exports = strapi => {
 
       strapi.router.get(
         `${strapi.config.admin.path}/*`,
-        async (ctx, next) => {
-          ctx.url = path.basename(ctx.url);
-          await next();
-        },
-        koaStatic(buildDir, {
-          index: 'index.html',
-          maxage: maxAge,
-          defer: false,
-        })
+        serveStatic(buildDir, { maxage: maxAge, defer: false, index: 'index.html' })
       );
 
       strapi.router.get(`${strapi.config.admin.path}*`, ctx => {
