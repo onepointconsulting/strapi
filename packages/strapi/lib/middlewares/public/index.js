@@ -61,6 +61,19 @@ module.exports = strapi => {
 
         strapi.router.get('/', serveIndexPage);
         strapi.router.get('/index.html', serveIndexPage);
+
+        // serve images of index.html
+        strapi.router.get(
+          '/assets/images/(.*)',
+          async (ctx, next) => {
+            ctx.url = path.basename(ctx.url);
+            await next();
+          },
+          koaStatic(path.resolve(__dirname, 'assets/images'), {
+            maxage: maxAge,
+            defer: false,
+          })
+        );
       }
 
       // serve files in public folder unless a sub router renders something else
